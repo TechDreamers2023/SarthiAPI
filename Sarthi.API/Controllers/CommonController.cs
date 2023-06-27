@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Sarthi.Core.Models;
+using Sarthi.Core.ViewModels;
 using Sarthi.Services.Interfaces;
 using System.Net;
 using System.Net.Mail;
@@ -21,16 +22,21 @@ namespace Sarthi.API.Controllers
             _commonService = commonService;
         }
 
-        [HttpGet("UserAuthentication")]
-        public async Task<IActionResult> UserAuthentication(string emailAddress, string password)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objUserViewModel"></param>
+        /// <returns></returns>
+        [HttpPost("UserAuthentication")]
+        public async Task<IActionResult> UserAuthentication(UserViewModel objUserViewModel)
         {
             var model = new ResultList<UserAuth>();
 
             try
             {
-                if (!string.IsNullOrEmpty(emailAddress) || !string.IsNullOrEmpty(password))
+                if (!string.IsNullOrEmpty(objUserViewModel.emailAddress) || !string.IsNullOrEmpty(objUserViewModel.password))
                 {
-                    var objUserAuth = await _commonService.GetUserAuthentication(emailAddress, password);
+                    var objUserAuth = await _commonService.GetUserAuthentication(objUserViewModel.emailAddress, objUserViewModel.password);
                     if (objUserAuth.Count() > 0)
                     {
                         model = new ResultList<UserAuth>
