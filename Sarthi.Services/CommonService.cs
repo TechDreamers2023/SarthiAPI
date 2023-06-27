@@ -9,7 +9,7 @@ namespace Sarthi.Services
         public IUnitOfWork _unitOfWork; 
         public CommonService(IUnitOfWork unitOfWork )
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork; 
          }
 
         public async Task<IEnumerable<UserAuth>> GetUserAuthentication(string emailAddress, string password)
