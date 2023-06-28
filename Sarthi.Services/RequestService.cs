@@ -32,5 +32,9 @@ namespace Sarthi.Services
         {
             return await _unitOfWork.RequestRepository.GetActiveCustomerServiceRequest(customerId);
         }
+        public async Task<int> CheckActiveRequestByCustomer(int customerId)
+        {
+            return await _unitOfWork.RequestRepository.CheckActiveRequestByCustomer(customerId);
+        }
     }
 }

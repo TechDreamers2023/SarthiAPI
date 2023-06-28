@@ -36,6 +36,21 @@ namespace Sarthi.API.Controllers
                 if (currentlat > 0 && currentlong > 0 && pickuplat > 0 && pickuplong > 0 &&
                   dropOfflat > 0 && dropOfflong > 0 && userId > 0)
                 {
+
+                    //Check if the request is active or not.
+                    int status = _requestService.CheckActiveRequestByCustomer(userId).Result;
+                    if (status == 0)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 2,
+                            Count = 0,
+                            Message = "You have already one active request.",
+                            Data = false
+                        };
+                        return Ok(model);
+                    }
+
                     if (pickuplat == dropOfflat && pickuplong == dropOfflong)
                     {
                         model = new Result<bool>
