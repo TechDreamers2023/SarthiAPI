@@ -1,5 +1,6 @@
 ﻿using Sarthi.Core.Interfaces;
 using Sarthi.Core.Models;
+using Sarthi.Core.ViewModels;
 using Sarthi.Services.Interfaces;
 
 namespace Sarthi.Services
@@ -16,7 +17,7 @@ namespace Sarthi.Services
         {
             return await _unitOfWork.VendorRepository.RejectQuotationByVendor(vendorId, QuoationDetailedId);
         }
-        public async Task<int> UpdateVendorShifts(int vendorId)
+        public async Task<VendorShiftViewModel> UpdateVendorShifts(int vendorId)
         {
             return await _unitOfWork.VendorRepository.UpdateVendorShifts(vendorId);
         }
@@ -27,6 +28,18 @@ namespace Sarthi.Services
         public async Task<int> UpdateRequestStatus(int requestId, int userId, int stageId)
         {
             return await _unitOfWork.VendorRepository.UpdateRequestStatus(requestId, userId, stageId);
+        }
+        public async Task<int> CheckVendorShiftStatus(int vendorId)
+        {
+            return await _unitOfWork.VendorRepository.CheckVendorShiftStatus(vendorId);
+        }
+        public async Task<VendorRequestServiceModel> GetVendorActiveRequest(int vendorUserId)
+        {
+            return await _unitOfWork.VendorRepository.GetVendorActiveRequest(vendorUserId);
+        }
+        public async Task<bool> SaveVendorLocation(VendorLocationViewModel objVendorLocationViewModel)
+        {
+            return await _unitOfWork.VendorRepository.SaveVendorLocation(objVendorLocationViewModel);
         }
     }
 }

@@ -173,5 +173,28 @@ namespace Sarthi.Infrastructure.Repositories
             }
             return rtnStatus;
         }
+        public async Task<IEnumerable<CustomerRequestStatusModel>> GetCurrentStatusByCustomer(int customerId)
+        {
+            IEnumerable<CustomerRequestStatusModel> objResponseRequestModel = null;
+
+            using (SqlConnection connection = new SqlConnection(this._configuration.GetConnectionString("DefaultConnection")))
+            {
+                try
+                {
+                    var parameters = new
+                    {
+                        CustomerId = customerId
+                    };
+
+                    objResponseRequestModel = await connection.QueryAsync<CustomerRequestStatusModel>("Sp_GetCurrentStatusByCustomer", parameters, commandType: CommandType.StoredProcedure);
+
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+            return objResponseRequestModel;
+        }
     }
 }

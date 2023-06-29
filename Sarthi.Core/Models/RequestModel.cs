@@ -86,7 +86,13 @@ namespace Sarthi.Core.Models
         public string RequestNumber { get; set; }
     }
 
-    public class CustomerRequestModel
+    public class CustomerRequestStatusModel
+    {
+        public int? RequestId { get; set; }
+        public int? CurrentStageId { get; set; }
+    }
+
+        public class CustomerRequestModel
     {
         public int RequestId { get; set; }
         public string RequestNumber { get; set; }
@@ -144,4 +150,5 @@ namespace Sarthi.Core.Models
         public string VehicleNumber { get; set; }
 
     }
+
 }

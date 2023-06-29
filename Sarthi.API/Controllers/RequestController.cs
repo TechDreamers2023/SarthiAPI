@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Sarthi.Core.Models;
+using Sarthi.Core.ViewModels;
 using Sarthi.Services;
 using Sarthi.Services.Interfaces;
 using System.Net;
@@ -25,20 +26,20 @@ namespace Sarthi.API.Controllers
         }
 
         [HttpPost("GenerateServiceRequest")]
-        public async Task<IActionResult> GenerateServiceRequest(double currentlat, double currentlong, double pickuplat, double pickuplong,
-            double dropOfflat, double dropOfflong, int userId)
+        public async Task<IActionResult> GenerateServiceRequest(RequestViewModel objRequestViewModel)
         {
 
             ServiceRequestModel objServiceRequestModel = new ServiceRequestModel();
             var model = new Result<bool>();
             try
             {
-                if (currentlat > 0 && currentlong > 0 && pickuplat > 0 && pickuplong > 0 &&
-                  dropOfflat > 0 && dropOfflong > 0 && userId > 0)
+                if (objRequestViewModel.currentlat > 0 && objRequestViewModel.currentlong > 0 && objRequestViewModel.pickuplat > 0 
+                    && objRequestViewModel.pickuplong > 0 && objRequestViewModel.dropOfflat > 0 && 
+                  objRequestViewModel.dropOfflong > 0 && objRequestViewModel.userId > 0)
                 {
 
                     //Check if the request is active or not.
-                    int status = _requestService.CheckActiveRequestByCustomer(userId).Result;
+                    int status = _requestService.CheckActiveRequestByCustomer(objRequestViewModel.userId).Result;
                     if (status == 0)
                     {
                         model = new Result<bool>
@@ -51,7 +52,8 @@ namespace Sarthi.API.Controllers
                         return Ok(model);
                     }
 
-                    if (pickuplat == dropOfflat && pickuplong == dropOfflong)
+                    if (objRequestViewModel.pickuplat == objRequestViewModel.dropOfflat 
+                        && objRequestViewModel.pickuplong == objRequestViewModel.dropOfflong)
                     {
                         model = new Result<bool>
                         {
@@ -63,9 +65,9 @@ namespace Sarthi.API.Controllers
                         return Ok(model);
                     }
 
-                    objServiceRequestModel.CurrentLocation = GetAddressInfo(currentlat, currentlong);
-                    objServiceRequestModel.PickupLocation = GetAddressInfo(pickuplat, pickuplong);
-                    objServiceRequestModel.DropOffLocation = GetAddressInfo(dropOfflat, dropOfflong);
+                    objServiceRequestModel.CurrentLocation = GetAddressInfo(objRequestViewModel.currentlat, objRequestViewModel.currentlong);
+                    objServiceRequestModel.PickupLocation = GetAddressInfo(objRequestViewModel.pickuplat, objRequestViewModel.pickuplong);
+                    objServiceRequestModel.DropOffLocation = GetAddressInfo(objRequestViewModel.dropOfflat, objRequestViewModel.dropOfflong);
 
                     if (objServiceRequestModel.PickupLocation.Latitude != objServiceRequestModel.DropOffLocation.Latitude &&
                         objServiceRequestModel.PickupLocation.Longitude != objServiceRequestModel.DropOffLocation.Longitude)
@@ -90,7 +92,7 @@ namespace Sarthi.API.Controllers
                         objRequestVendorModel.CurrentLocation = objServiceRequestModel.CurrentLocation;
                         objRequestVendorModel.PickupLocation = objServiceRequestModel.PickupLocation;
                         objRequestVendorModel.DropOffLocation = objServiceRequestModel.DropOffLocation;
-                        objRequestVendorModel.UserId = userId;
+                        objRequestVendorModel.UserId = objRequestViewModel.userId;
                          
                         //save the records
                         var objServiceInfo = await _requestService.SaveServiceRequests(objRequestVendorModel);
@@ -161,15 +163,16 @@ namespace Sarthi.API.Controllers
         }
 
         [HttpPost("AcceptQuotationByCustomer")]
-        public async Task<IActionResult> AcceptQuotationByCustomer(int customerId, int quoationDetailedId)
+        public async Task<IActionResult> AcceptQuotationByCustomer(AcceptCustomerRequestViewModel objAcceptCustomerRequestViewModel)
         {
             var model = new ResultList<bool>();
 
             try
             {
-                if (customerId > 0 || quoationDetailedId > 0)
+                if (objAcceptCustomerRequestViewModel.customerId > 0 || objAcceptCustomerRequestViewModel.quoationDetailedId > 0)
                 {
-                    int status = _requestService.AcceptQuotationByCustomer(customerId, quoationDetailedId).Result;
+                    int status = _requestService.AcceptQuotationByCustomer(objAcceptCustomerRequestViewModel.customerId,
+                        objAcceptCustomerRequestViewModel.quoationDetailedId).Result;
 
                     if (status == 0)
                     {
@@ -230,9 +233,7 @@ namespace Sarthi.API.Controllers
             {
                 _logger.LogError(ex, "Transaction failed");
             }
-
             return Ok(model);
-
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -528,6 +529,55 @@ namespace Sarthi.API.Controllers
                     Data = null
                 };
             }
+            return Ok(model);
+        }
+
+        [HttpGet("GetCurrentStatusByCustomer")]
+        public async Task<IActionResult> GetCurrentStatusByCustomer(int customerId)
+        {
+            RequestVendorModel objRequestVendorModel = new RequestVendorModel();
+            var model = new Result<CustomerRequestStatusModel>();
+
+            try
+            {
+                if (customerId > 0)
+                {
+                    var status = await _requestService.GetCurrentStatusByCustomer(customerId);
+                    if (status.Count() > 0)
+                    {
+                        model = new Result<CustomerRequestStatusModel>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Active Request Found.",
+                            Data = status.First()
+                        };
+                    }
+                    else
+                    {
+                        model = new Result<CustomerRequestStatusModel>
+                        {
+                            Status = 2,
+                            Count = 0,
+                            Message = "No Active Request Found",
+                            Data = null
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new Result<CustomerRequestStatusModel>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = "Invalid Request",
+                    Data = null
+                };
+                _logger.LogError(ex, "Transaction failed");
+                return Ok(model);
+            }
+             
             return Ok(model);
         }
     }

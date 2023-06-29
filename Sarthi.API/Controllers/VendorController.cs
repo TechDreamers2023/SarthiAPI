@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Sarthi.Core.Models;
+using Sarthi.Core.ViewModels;
+using Sarthi.Services;
 using Sarthi.Services.Interfaces;
 using System.Net;
 using System.Net.Mail;
@@ -24,14 +26,16 @@ namespace Sarthi.API.Controllers
         }
           
         [HttpPost("RejectQuotationByVendor")]
-        public async Task<IActionResult> RejectQuotationByVendor(int vendorId,int quoationDetailedId)
+        public async Task<IActionResult> RejectQuotationByVendor(VendorRequestViewModel objVendorRequestViewModel)
         {
             var model = new ResultList<bool>();
             try
             {
-                if (vendorId > 0 || quoationDetailedId > 0)
+                if (objVendorRequestViewModel.vendorId > 0 || objVendorRequestViewModel.quoationDetailedId > 0)
                 {
-                    int status = _vendorService.RejectQuotationByVendor(vendorId, quoationDetailedId).Result;
+                    int status = _vendorService.RejectQuotationByVendor(objVendorRequestViewModel.vendorId,
+                        objVendorRequestViewModel.quoationDetailedId).Result;
+
                     if (status == 0)
                     {
                         model = new ResultList<bool>
@@ -80,18 +84,18 @@ namespace Sarthi.API.Controllers
             return Ok(model);
         }
 
-        [HttpPost("ManageVendorShifts")]
+        [HttpGet("ManageVendorShifts")]
         public async Task<IActionResult> ManageVendorShifts(int vendorId)
         {
-            var model = new ResultList<bool>();
+            var model = new Result<int?>();
             try
             {
                 if (vendorId > 0)
                 {
-                    int status = _vendorService.UpdateVendorShifts(vendorId).Result;
-                    if (status == 0)
+                    VendorShiftViewModel objVendorShiftViewModel = await _vendorService.UpdateVendorShifts(vendorId);
+                    if (objVendorShiftViewModel == null)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<int?>
                         {
                             Status = 2,
                             Count = 0,
@@ -99,40 +103,40 @@ namespace Sarthi.API.Controllers
                             Data = null
                         };
                     }
-                    else if (status == 1)
+                    else if (objVendorShiftViewModel.Status == 1)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<int?>
                         {
                             Status = 1,
                             Count = 0,
                             Message = "Shift has been started successfully.",
-                            Data = null
+                            Data = objVendorShiftViewModel.ShiftId
                         };
                     }
-                    else if (status == 2)
+                    else if (objVendorShiftViewModel.Status == 2)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<int?>
                         {
                             Status = 1,
                             Count = 0,
                             Message = "Shift has been ended successfully.",
-                            Data = null
+                            Data = objVendorShiftViewModel.ShiftId
                         };
                     }
-                    else if (status == 3)
+                    else if (objVendorShiftViewModel.Status == 3)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<int?>
                         {
                             Status = 2,
                             Count = 0,
                             Message = "Active request is in process. Hence can't end the shift.",
-                            Data = null
+                            Data = objVendorShiftViewModel.ShiftId
                         };
                     }
                 }
                 else
                 {
-                    model = new ResultList<bool>
+                    model = new Result<int?>
                     {
                         Status = 2,
                         Count = 0,
@@ -149,14 +153,14 @@ namespace Sarthi.API.Controllers
         }
 
         [HttpPost("AccpetQuotationByVendor")]
-        public async Task<IActionResult> AccpetQuotationByVendor(int vendorId, int quoationDetailedId)
+        public async Task<IActionResult> AccpetQuotationByVendor(VendorRequestViewModel objVendorRequestViewModel)
         {
             var model = new ResultList<bool>();
             try
             {
-                if (vendorId > 0 || quoationDetailedId > 0)
+                if (objVendorRequestViewModel.vendorId > 0 || objVendorRequestViewModel.quoationDetailedId > 0)
                 {
-                    int status = _vendorService.AccpetQuotationByVendor(vendorId, quoationDetailedId).Result;
+                    int status = _vendorService.AccpetQuotationByVendor(objVendorRequestViewModel.vendorId, objVendorRequestViewModel.quoationDetailedId).Result;
                     if (status == 0)
                     {
                         model = new ResultList<bool>
@@ -197,14 +201,17 @@ namespace Sarthi.API.Controllers
         }
 
         [HttpPost("UpdateRequestStatus")]
-        public async Task<IActionResult> UpdateRequestStatus(int requestId, int userId, int stageId)
+        public async Task<IActionResult> UpdateRequestStatus(VendorUpdateRequestViewModel objVendorUpdateRequestViewModel)
         {
             var model = new ResultList<bool>();
             try
             {
-                if (requestId > 0 || userId > 0 || stageId > 0)
+                if (objVendorUpdateRequestViewModel.requestId > 0 || objVendorUpdateRequestViewModel.userId > 0 || 
+                    objVendorUpdateRequestViewModel.stageId > 0)
                 {
-                    int status = _vendorService.UpdateRequestStatus(requestId, userId, stageId).Result;
+                    int status = _vendorService.UpdateRequestStatus(objVendorUpdateRequestViewModel.requestId, objVendorUpdateRequestViewModel.userId,
+                        objVendorUpdateRequestViewModel.stageId).Result;
+
                     if (status == 0)
                     {
                         model = new ResultList<bool>
@@ -241,5 +248,142 @@ namespace Sarthi.API.Controllers
             return Ok(model);
         }
 
+        [HttpGet("CheckVendorShiftStatus")]
+        public async Task<IActionResult> CheckVendorShiftStatus(int vendorId)
+        {
+            var model = new Result<bool>();
+            try
+            {
+                if (vendorId > 0)
+                {
+                    int status = await _vendorService.CheckVendorShiftStatus(vendorId);
+                    if (status == 0)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Shift is closed.",
+                            Data = false
+                        };
+                    }
+                    else if (status == 1)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Shift is active.",
+                            Data = true
+                        };
+                    } 
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new Result<bool>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = "Error occured, Please try again later",
+                    Data = false
+                };
+                _logger.LogError(ex, "Transaction failed");
+            }
+            return Ok(model);
+        }
+
+        [HttpGet("GetVendorActiveRequest")]
+        public async Task<IActionResult> GetVendorActiveRequest(int vendorUserId)
+        {
+            VendorRequestServiceModel objRequestVendorModel = new VendorRequestServiceModel();
+            var model = new Result<VendorRequestServiceModel>();
+
+            try
+            {
+                if (vendorUserId > 0)
+                {
+                    objRequestVendorModel = await _vendorService.GetVendorActiveRequest(vendorUserId);
+
+                    if (objRequestVendorModel == null)
+                    {
+                        model = new Result<VendorRequestServiceModel>
+                        {
+                            Status = 2,
+                            Count = 0,
+                            Message = "Active request not found.",
+                            Data = null
+                        };
+                    }
+                    else if (objRequestVendorModel != null)
+                    {
+                        model = new Result<VendorRequestServiceModel>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Active request found.",
+                            Data = objRequestVendorModel
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new Result<VendorRequestServiceModel>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+
+            return Ok(model);
+        }
+
+        [HttpPost("SaveVendorLocations")]
+        public async Task<IActionResult> SaveVendorLocations(VendorLocationViewModel objVendorLocationViewModel)
+        {
+            var model = new Result<bool>();
+            try
+            {
+                if (objVendorLocationViewModel.vendorId > 0 && objVendorLocationViewModel.ShiftId > 0)
+                {
+                    int status = await _vendorService.CheckVendorShiftStatus(objVendorLocationViewModel.vendorId);
+                    if (status == 0)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Shift is closed.",
+                            Data = false
+                        };
+                    }
+                    else if (status == 1)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Shift is active.",
+                            Data = true
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new Result<bool>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = "Error occured, Please try again later",
+                    Data = false
+                };
+                _logger.LogError(ex, "Transaction failed");
+            }
+            return Ok(model);
+        }
     }
 }

@@ -9,7 +9,6 @@ namespace Sarthi.Core.Models
         public int Count { get; set; }
         public string Message { get; set; }
         public T Data { get; set; }
-         
     }
 
     public class ResultList<T>
