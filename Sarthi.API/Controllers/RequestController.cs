@@ -39,8 +39,8 @@ namespace Sarthi.API.Controllers
                 {
 
                     //Check if the request is active or not.
-                    int status = _requestService.CheckActiveRequestByCustomer(objRequestViewModel.userId).Result;
-                    if (status == 0)
+                    bool status = await _requestService.CheckActiveRequestByCustomer(objRequestViewModel.userId);
+                    if (status)
                     {
                         model = new Result<bool>
                         {
@@ -132,7 +132,7 @@ namespace Sarthi.API.Controllers
                         {
                             Status = 2,
                             Count = 0,
-                            Message = "No Vendor Available, Please try later.",
+                            Message = "No Vendor Service Available.",
                             Data = false
                         };
                     }
@@ -165,7 +165,7 @@ namespace Sarthi.API.Controllers
         [HttpPost("AcceptQuotationByCustomer")]
         public async Task<IActionResult> AcceptQuotationByCustomer(AcceptCustomerRequestViewModel objAcceptCustomerRequestViewModel)
         {
-            var model = new ResultList<bool>();
+            var model = new Result<bool>();
 
             try
             {
@@ -176,56 +176,56 @@ namespace Sarthi.API.Controllers
 
                     if (status == 0)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
                             Status = 2,
                             Count = 0,
                             Message = "Something wrong happened.",
-                            Data = null
+                            Data = false
                         };
                     }
                     else if (status == 1)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
                             Status = 1,
                             Count = 0,
                             Message = "Quatations Request Has Been Sent Successfully.",
-                            Data = null
+                            Data = true
                         };
 
                     }
                     else if (status == 2)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
                             Status = 2,
                             Count = 0,
                             Message = "Request is already rejected by vendor",
-                            Data = null
+                            Data = false
                         };
 
                     }
                     else if (status == 3)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
                             Status = 2,
                             Count = 0,
                             Message = "Request Already in Process, Please wait.",
-                            Data = null
+                            Data = false
                         };
 
                     }
                 }
                 else
                 {
-                    model = new ResultList<bool>
+                    model = new Result<bool>
                     {
                         Status = 2,
                         Count = 0,
                         Message = "Invalid Request",
-                        Data = null
+                        Data = false
                     };
                 }
             }
@@ -241,7 +241,7 @@ namespace Sarthi.API.Controllers
         {
             AddressModel objAddressModel = new AddressModel();
 
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/geocode/json?latlng={0},{1}&key=jFAYIEhFk4YMBmWL5lvXQ0w7L7BPJ", latitude, longitude);
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/geocode/json?latlng={0},{1}&key=xYZlTFwlSqUx9GodjvwBa3yXim4eu", latitude, longitude);
 
             WebRequest request = WebRequest.Create(requestUri);
 
@@ -267,7 +267,7 @@ namespace Sarthi.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public ServiceRequestModel GetDistanceByLatLong(ref ServiceRequestModel objServiceRequestModel)
         {
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=jFAYIEhFk4YMBmWL5lvXQ0w7L7BPJ",
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xYZlTFwlSqUx9GodjvwBa3yXim4eu",
               objServiceRequestModel.PickupLocation.Latitude,
               objServiceRequestModel.PickupLocation.Longitude,
               objServiceRequestModel.DropOffLocation.Latitude,
@@ -297,7 +297,7 @@ namespace Sarthi.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public VendorDistanceModel GetVendorDistanceByLatLong(RequestVendorModel objServiceRequestModel, double latitude, double longitude)
         {
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=jFAYIEhFk4YMBmWL5lvXQ0w7L7BPJ",
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xYZlTFwlSqUx9GodjvwBa3yXim4eu",
              latitude, longitude, objServiceRequestModel.PickupLocation.Latitude,
               objServiceRequestModel.PickupLocation.Longitude);
 
@@ -311,7 +311,7 @@ namespace Sarthi.API.Controllers
                     var objText = reader.ReadToEnd();
                     var distanceDetails = JsonConvert.DeserializeObject<DistanceInfoModel>(objText);
 
-                    if (distanceDetails != null)
+                    if (distanceDetails.rows != null)
                     {
                         string distanceString = distanceDetails.rows[0].elements[0].distance.text.Replace("km", "");
                         objVendorDistanceModel.DistanceKM = Convert.ToDecimal(distanceString);
@@ -382,6 +382,7 @@ namespace Sarthi.API.Controllers
                                 objRequestVendorDetailsModel.TotalAmount = currentVendor.TotalAmount;
                                 objRequestVendorDetailsModel.IsCustomerAccepted= currentVendor.IsCustomerAccepted;
                                 objRequestVendorDetailsModel.IsRejectedByVendor = currentVendor.IsRejectedByVendor;
+                                objRequestVendorDetailsModel.QuoationDetailId = currentVendor.QuoationDetailId;
                                 ObjVendorInfoDetails.Add(objRequestVendorDetailsModel);
                             }
                         }
@@ -542,15 +543,15 @@ namespace Sarthi.API.Controllers
             {
                 if (customerId > 0)
                 {
-                    var status = await _requestService.GetCurrentStatusByCustomer(customerId);
-                    if (status.Count() > 0)
+                    CustomerRequestStatusModel status = await _requestService.GetCurrentStatusByCustomer(customerId);
+                    if (status.RequestId > 0)
                     {
                         model = new Result<CustomerRequestStatusModel>
                         {
                             Status = 1,
-                            Count = 0,
+                            Count = 1,
                             Message = "Active Request Found.",
-                            Data = status.First()
+                            Data = status
                         };
                     }
                     else

@@ -72,6 +72,7 @@ namespace Sarthi.Core.Models
         public bool? IsCustomerAccepted { get; set; }
         public bool? IsRejectedByVendor { get; set; }
         public string VehicleNumber { get; set; }
+        public int QuoationDetailId { get; set;}
     }
 
     public class VendorDistanceModel
@@ -118,6 +119,7 @@ namespace Sarthi.Core.Models
         public int VendorUserId { get; set; }
         public double VendorLatitude { get; set; }
         public double VendorLongitude { get; set; }
+        public int QuoationDetailId { get; set; }
 
     }
 

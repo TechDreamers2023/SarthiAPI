@@ -28,7 +28,7 @@ namespace Sarthi.API.Controllers
         [HttpPost("RejectQuotationByVendor")]
         public async Task<IActionResult> RejectQuotationByVendor(VendorRequestViewModel objVendorRequestViewModel)
         {
-            var model = new ResultList<bool>();
+            var model = new Result<bool>();
             try
             {
                 if (objVendorRequestViewModel.vendorId > 0 || objVendorRequestViewModel.quoationDetailedId > 0)
@@ -38,46 +38,46 @@ namespace Sarthi.API.Controllers
 
                     if (status == 0)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
-                            Status = 2,
+                            Status = 0,
                             Count = 0,
                             Message = "Something wrong happened.",
-                            Data = null
+                            Data = false
                         };
                     }
                     else if (status == 1)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
                             Status = 1,
                             Count = 0,
                             Message = "Quatations Request Has Been Rejected Successfully.",
-                            Data = null
+                            Data = true
                         };
                     }
                     else if (status == 2)
                     {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
                             Status = 2,
                             Count = 0,
-                            Message = "Invalid Request.",
-                            Data = null
+                            Message = "Quatations Request Has Been not found.",
+                            Data = false
                         };
                     }
                 }
                 else
                 {
-                    model = new ResultList<bool>
+                    model = new Result<bool>
                     {
                         Status = 2,
                         Count = 0,
-                        Message = "Invalid Request",
-                        Data = null
+                        Message = "Please provide the all required inputs.",
+                        Data = false
                     };
                 }
-            }
+            }   
             catch (Exception ex) {
                 _logger.LogError(ex, "Transaction failed");
             }
@@ -97,7 +97,7 @@ namespace Sarthi.API.Controllers
                     {
                         model = new Result<int?>
                         {
-                            Status = 2,
+                            Status = 0,
                             Count = 0,
                             Message = "Something wrong happened.",
                             Data = null
@@ -155,7 +155,7 @@ namespace Sarthi.API.Controllers
         [HttpPost("AccpetQuotationByVendor")]
         public async Task<IActionResult> AccpetQuotationByVendor(VendorRequestViewModel objVendorRequestViewModel)
         {
-            var model = new ResultList<bool>();
+            var model = new Result<bool>();
             try
             {
                 if (objVendorRequestViewModel.vendorId > 0 || objVendorRequestViewModel.quoationDetailedId > 0)
@@ -163,107 +163,11 @@ namespace Sarthi.API.Controllers
                     int status = _vendorService.AccpetQuotationByVendor(objVendorRequestViewModel.vendorId, objVendorRequestViewModel.quoationDetailedId).Result;
                     if (status == 0)
                     {
-                        model = new ResultList<bool>
-                        {
-                            Status = 2,
-                            Count = 0,
-                            Message = "Something wrong happened.",
-                            Data = null
-                        };
-                    }
-                    else if (status == 1)
-                    {
-                        model = new ResultList<bool>
-                        {
-                            Status = 1,
-                            Count = 0,
-                            Message = "Quotations Request Has Been Accepted Successfully.",
-                            Data = null
-                        };
-                    }
-                    return Ok(model);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Transaction failed");
-            }
-
-            model = new ResultList<bool>
-            {
-                Status = 2,
-                Count = 0,
-                Message = "Invalid Request",
-                Data = null
-            };
-
-            return Ok(model);
-        }
-
-        [HttpPost("UpdateRequestStatus")]
-        public async Task<IActionResult> UpdateRequestStatus(VendorUpdateRequestViewModel objVendorUpdateRequestViewModel)
-        {
-            var model = new ResultList<bool>();
-            try
-            {
-                if (objVendorUpdateRequestViewModel.requestId > 0 || objVendorUpdateRequestViewModel.userId > 0 || 
-                    objVendorUpdateRequestViewModel.stageId > 0)
-                {
-                    int status = _vendorService.UpdateRequestStatus(objVendorUpdateRequestViewModel.requestId, objVendorUpdateRequestViewModel.userId,
-                        objVendorUpdateRequestViewModel.stageId).Result;
-
-                    if (status == 0)
-                    {
-                        model = new ResultList<bool>
+                        model = new Result<bool>
                         {
                             Status = 0,
                             Count = 0,
                             Message = "Something wrong happened.",
-                            Data = null
-                        };
-                    }
-                    else if (status == 1)
-                    {
-                        model = new ResultList<bool>
-                        {
-                            Status = 1,
-                            Count = 0,
-                            Message = "Request status has been updated successfully.",
-                            Data = null
-                        };
-                    }
-                 }
-            }
-            catch (Exception ex)
-            {
-                model = new ResultList<bool>
-                {
-                    Status = 0,
-                    Count = 0,
-                    Message = "Something wrong happened.",
-                    Data = null
-                };
-                _logger.LogError(ex, "Transaction failed");
-            }
-            return Ok(model);
-        }
-
-        [HttpGet("CheckVendorShiftStatus")]
-        public async Task<IActionResult> CheckVendorShiftStatus(int vendorId)
-        {
-            var model = new Result<bool>();
-            try
-            {
-                if (vendorId > 0)
-                {
-                    int status = await _vendorService.CheckVendorShiftStatus(vendorId);
-                    if (status == 0)
-                    {
-                        model = new Result<bool>
-                        {
-                            Status = 1,
-                            Count = 0,
-                            Message = "Shift is closed.",
                             Data = false
                         };
                     }
@@ -273,10 +177,11 @@ namespace Sarthi.API.Controllers
                         {
                             Status = 1,
                             Count = 0,
-                            Message = "Shift is active.",
+                            Message = "Quotations Request Has Been Accepted Successfully.",
                             Data = true
                         };
-                    } 
+                    }
+                    return Ok(model);
                 }
             }
             catch (Exception ex)
@@ -285,8 +190,110 @@ namespace Sarthi.API.Controllers
                 {
                     Status = 0,
                     Count = 0,
-                    Message = "Error occured, Please try again later",
+                    Message = "Something wrong happened.",
                     Data = false
+                };
+                _logger.LogError(ex, "Transaction failed");
+            }
+
+            model = new Result<bool>
+            {
+                Status = 2,
+                Count = 0,
+                Message = "Invalid Request",
+                Data = false
+            };
+
+            return Ok(model);
+        }
+
+        [HttpPost("UpdateRequestStatus")]
+        public async Task<IActionResult> UpdateRequestStatus(VendorUpdateRequestViewModel objVendorUpdateRequestViewModel)
+        {
+            var model = new Result<bool>();
+            try
+            {
+                if (objVendorUpdateRequestViewModel.requestId > 0 || objVendorUpdateRequestViewModel.userId > 0 || 
+                    objVendorUpdateRequestViewModel.stageId > 0)
+                {
+                    bool IsScuccess = _vendorService.UpdateRequestStatus(objVendorUpdateRequestViewModel.requestId, objVendorUpdateRequestViewModel.userId,
+                        objVendorUpdateRequestViewModel.stageId).Result;
+
+                    if (!IsScuccess)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 2,
+                            Count = 0,
+                            Message = "Invalid service request.",
+                            Data = false
+                        };
+                    }
+                    else if (IsScuccess)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Request status has been updated successfully.",
+                            Data = true
+                        };
+                    }
+                 }
+            }
+            catch (Exception ex)
+            {
+                model = new Result<bool>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = "Something wrong happened.",
+                    Data = false
+                };
+                _logger.LogError(ex, "Transaction failed");
+            }
+            return Ok(model);
+        }
+
+        [HttpGet("CheckVendorShiftStatus")]
+        public async Task<IActionResult> CheckVendorShiftStatus(int vendorId)
+        {
+            var model = new Result<int?>();
+            try
+            {
+                if (vendorId > 0)
+                {
+                    int status = await _vendorService.CheckVendorShiftStatus(vendorId);
+                    if (status > 0)
+                    {
+                        model = new Result<int?>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Shift is active.",
+                            Data = status
+                        };
+                    }
+                    else
+                    {
+                        model = new Result<int?>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Shift is closed.",
+                            Data = null
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new Result<int?>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = "Error occured, Please try again later",
+                    Data = null
                 };
                 _logger.LogError(ex, "Transaction failed");
             }
@@ -349,24 +356,24 @@ namespace Sarthi.API.Controllers
             {
                 if (objVendorLocationViewModel.vendorId > 0 && objVendorLocationViewModel.ShiftId > 0)
                 {
-                    int status = await _vendorService.CheckVendorShiftStatus(objVendorLocationViewModel.vendorId);
-                    if (status == 0)
+                    bool status = await _vendorService.SaveVendorLocation(objVendorLocationViewModel);
+                    if (!status)
                     {
                         model = new Result<bool>
                         {
-                            Status = 1,
+                            Status = 0,
                             Count = 0,
-                            Message = "Shift is closed.",
+                            Message = "Error occured, Please try again later.",
                             Data = false
                         };
                     }
-                    else if (status == 1)
+                    else if (status)
                     {
                         model = new Result<bool>
                         {
                             Status = 1,
                             Count = 0,
-                            Message = "Shift is active.",
+                            Message = "Location Added Successfully.",
                             Data = true
                         };
                     }

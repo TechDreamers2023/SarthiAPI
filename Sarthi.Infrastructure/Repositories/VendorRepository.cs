@@ -31,7 +31,7 @@ namespace Sarthi.Infrastructure.Repositories
                             VendorId = vendorId
                         };
 
-                       rtnStatus = await connection.ExecuteAsync("Sp_RejectQuotationByVendor", parameters, commandType: CommandType.StoredProcedure);
+                       rtnStatus = await connection.QuerySingleAsync<int>("Sp_RejectQuotationByVendor", parameters, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {
@@ -77,7 +77,7 @@ namespace Sarthi.Infrastructure.Repositories
                         VendorId = vendorId
                     };
 
-                    rtnStatus = await connection.ExecuteAsync("Sp_AcceptQuotationByVendor", parameters, commandType: CommandType.StoredProcedure);
+                    rtnStatus = await connection.QuerySingleAsync<int>("Sp_AcceptQuotationByVendor", parameters, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {
@@ -86,9 +86,9 @@ namespace Sarthi.Infrastructure.Repositories
             }
             return rtnStatus;
         }
-        public async Task<int> UpdateRequestStatus(int requestId, int userId, int stageId)
+        public async Task<bool> UpdateRequestStatus(int requestId, int userId, int stageId)
         {
-            int rtnStatus = 0;
+            bool rtnStatus = false;
 
             using (SqlConnection connection = new SqlConnection(this._configuration.GetConnectionString("DefaultConnection")))
             {
@@ -101,11 +101,11 @@ namespace Sarthi.Infrastructure.Repositories
                         StageId = stageId
                     };
 
-                    rtnStatus = await connection.ExecuteAsync("SP_UpdateRequestStatus", parameters, commandType: CommandType.StoredProcedure);
+                    rtnStatus = await connection.QuerySingleAsync<bool>("SP_UpdateRequestStatus", parameters, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {
-                    rtnStatus = 0;
+                    rtnStatus = false;
                 }
             }
             return rtnStatus;
@@ -144,7 +144,7 @@ namespace Sarthi.Infrastructure.Repositories
                     {
                         VendorId = vendorUserId 
                     };
-                    objVendorRequestServiceModel = await connection.QuerySingleAsync<VendorRequestServiceModel>("SP_GetActiveRequestByVendor", parameters, commandType: CommandType.StoredProcedure);
+                    objVendorRequestServiceModel = await connection.QuerySingleOrDefaultAsync<VendorRequestServiceModel>("SP_GetActiveRequestByVendor", parameters, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {
@@ -170,7 +170,7 @@ namespace Sarthi.Infrastructure.Repositories
                         RequestId = objVendorLocationViewModel.RequestId
                     };
 
-                    rtnStatus = await connection.QuerySingleAsync("SP_SaveVendorLocations", parameters, commandType: CommandType.StoredProcedure);
+                    rtnStatus = await connection.QuerySingleAsync<bool>("SP_SaveVendorLocations", parameters, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {

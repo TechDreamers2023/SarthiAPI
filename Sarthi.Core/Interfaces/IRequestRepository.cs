@@ -9,7 +9,7 @@ namespace Sarthi.Core.Interfaces
         Task<int> AcceptQuotationByCustomer(int customerId, int QuoationDetailedId);
         Task<IEnumerable<CustomerRequestModel>> GetCustomerServiceRequest(int customerId);
         Task<IEnumerable<CustomerRequestServiceModel>> GetActiveCustomerServiceRequest(int customerId);
-        Task<int> CheckActiveRequestByCustomer(int customerId);
-        Task<IEnumerable<CustomerRequestStatusModel>> GetCurrentStatusByCustomer(int customerId);
+        Task<bool> CheckActiveRequestByCustomer(int customerId);
+        Task<CustomerRequestStatusModel> GetCurrentStatusByCustomer(int customerId);
     }
 }

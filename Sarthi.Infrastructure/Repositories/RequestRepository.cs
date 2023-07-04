@@ -96,7 +96,7 @@ namespace Sarthi.Infrastructure.Repositories
                             UserId = customerId
                         };
 
-                       rtnStatus = await connection.ExecuteAsync("Sp_AcceptQuotationByCustomer", parameters, commandType: CommandType.StoredProcedure);
+                       rtnStatus = await connection.QuerySingleAsync<int>("Sp_AcceptQuotationByCustomer", parameters, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {
@@ -151,9 +151,9 @@ namespace Sarthi.Infrastructure.Repositories
             }
             return objResponseRequestModel;
         }
-        public async Task<int> CheckActiveRequestByCustomer(int customerId)
+        public async Task<bool> CheckActiveRequestByCustomer(int customerId)
         {
-            int rtnStatus = 0;
+            bool rtnStatus = false;
 
             using (SqlConnection connection = new SqlConnection(this._configuration.GetConnectionString("DefaultConnection")))
             {
@@ -164,18 +164,18 @@ namespace Sarthi.Infrastructure.Repositories
                         CustomerId = customerId
                     };
 
-                    rtnStatus = await connection.ExecuteAsync("Sp_CheckActiveRequestByCustomer", parameters, commandType: CommandType.StoredProcedure);
+                    rtnStatus = await connection.QuerySingleAsync<bool>("Sp_CheckActiveRequestByCustomer", parameters, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {
-                    rtnStatus = 0;
+                    rtnStatus = false;
                 }
             }
             return rtnStatus;
         }
-        public async Task<IEnumerable<CustomerRequestStatusModel>> GetCurrentStatusByCustomer(int customerId)
+        public async Task<CustomerRequestStatusModel> GetCurrentStatusByCustomer(int customerId)
         {
-            IEnumerable<CustomerRequestStatusModel> objResponseRequestModel = null;
+            CustomerRequestStatusModel objResponseRequestModel = new CustomerRequestStatusModel();
 
             using (SqlConnection connection = new SqlConnection(this._configuration.GetConnectionString("DefaultConnection")))
             {
@@ -186,7 +186,7 @@ namespace Sarthi.Infrastructure.Repositories
                         CustomerId = customerId
                     };
 
-                    objResponseRequestModel = await connection.QueryAsync<CustomerRequestStatusModel>("Sp_GetCurrentStatusByCustomer", parameters, commandType: CommandType.StoredProcedure);
+                    objResponseRequestModel = await connection.QuerySingleAsync<CustomerRequestStatusModel>("Sp_GetCurrentStatusByCustomer", parameters, commandType: CommandType.StoredProcedure);
 
                 }
                 catch (Exception ex)

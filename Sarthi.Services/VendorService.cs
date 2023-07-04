@@ -25,7 +25,7 @@ namespace Sarthi.Services
         {
             return await _unitOfWork.VendorRepository.AccpetQuotationByVendor(vendorId, QuoationDetailedId);
         }
-        public async Task<int> UpdateRequestStatus(int requestId, int userId, int stageId)
+        public async Task<bool> UpdateRequestStatus(int requestId, int userId, int stageId)
         {
             return await _unitOfWork.VendorRepository.UpdateRequestStatus(requestId, userId, stageId);
         }
