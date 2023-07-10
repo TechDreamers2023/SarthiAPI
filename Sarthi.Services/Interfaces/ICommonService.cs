@@ -13,5 +13,6 @@ namespace Sarthi.Services.Interfaces
         Task<bool> UserRegistration(UserRegisterViewModel objUserRegisterViewModel);
         Task<IEnumerable<RequestHistoryDetails>> GetRequestHistoryById(int userId);
         Task<IEnumerable<TrackServiceModel>> GetTrackServiceRequest(int userId);
+        Task<PastTrackServiceModel> GetPastHistoyDeatilsCustomer(int userId);
     }
 }

@@ -196,5 +196,29 @@ namespace Sarthi.Infrastructure.Repositories
             }
             return objResponseRequestModel;
         }
+
+        public async Task<int> RejectServiceRequestByCustomer(int customerId, int requestId)
+        {
+            int rtnStatus = 0;
+
+            using (SqlConnection connection = new SqlConnection(this._configuration.GetConnectionString("DefaultConnection")))
+            {
+                try
+                {
+                    var parameters = new
+                    {
+                        RequestId = requestId,
+                        UserId = customerId
+                    };
+
+                    rtnStatus = await connection.QuerySingleAsync<int>("Sp_RejectRequestByCustomer", parameters, commandType: CommandType.StoredProcedure);
+                }
+                catch (Exception ex)
+                {
+                    rtnStatus = 0;
+                }
+            }
+            return rtnStatus;
+        }
     }
 }

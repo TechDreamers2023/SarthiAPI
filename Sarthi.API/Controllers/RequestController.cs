@@ -69,6 +69,24 @@ namespace Sarthi.API.Controllers
                     objServiceRequestModel.PickupLocation = GetAddressInfo(objRequestViewModel.pickuplat, objRequestViewModel.pickuplong);
                     objServiceRequestModel.DropOffLocation = GetAddressInfo(objRequestViewModel.dropOfflat, objRequestViewModel.dropOfflong);
 
+                    if (objServiceRequestModel.PickupLocation != null
+                        && objServiceRequestModel.DropOffLocation != null)
+                    {
+                        if ((objServiceRequestModel.PickupLocation.City != objServiceRequestModel.DropOffLocation.City) || 
+                            (string.IsNullOrEmpty(objServiceRequestModel.PickupLocation.City) ||
+                            string.IsNullOrEmpty(objServiceRequestModel.DropOffLocation.City)))
+                        {
+                            model = new Result<bool>
+                            {
+                                Status = 2,
+                                Count = 0,
+                                Message = "Service not available in entered cities.",
+                                Data = false
+                            };
+                            return Ok(model);
+                        }
+                    }
+
                     if (objServiceRequestModel.PickupLocation.Latitude != objServiceRequestModel.DropOffLocation.Latitude &&
                         objServiceRequestModel.PickupLocation.Longitude != objServiceRequestModel.DropOffLocation.Longitude)
                     {
@@ -110,7 +128,7 @@ namespace Sarthi.API.Controllers
                             {
                                 Status = 1,
                                 Count = objVendorDetails.Count(),
-                                Message = "Vendor Found Successfully",
+                                Message = "Service Request has been created successfully.",
                                 Data = true
                             };
                         }
@@ -241,7 +259,7 @@ namespace Sarthi.API.Controllers
         {
             AddressModel objAddressModel = new AddressModel();
 
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/geocode/json?latlng={0},{1}&key=xYZlTFwlSqUx9GodjvwBa3yXim4eu", latitude, longitude);
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/geocode/json?latlng={0},{1}&key=xXEaFwNghC7buXPval97zxtUAXAqY", latitude, longitude);
 
             WebRequest request = WebRequest.Create(requestUri);
 
@@ -255,9 +273,19 @@ namespace Sarthi.API.Controllers
                     if (addressDetails != null)
                     {
                         objAddressModel.Address = addressDetails.result[0].formatted_address;
-                        objAddressModel.City = addressDetails.result[0].address_components.Where(x => x.types.Contains("locality")).SingleOrDefault().long_name;
-                        objAddressModel.Latitude = latitude;
-                        objAddressModel.Longitude = longitude;
+                        if (addressDetails.result[0] != null)
+                        {
+                            if (addressDetails.result[0].address_components.Exists(x => x.types.Contains("locality")) == true)
+                            {
+                                objAddressModel.City = Convert.ToString(addressDetails.result[0].address_components.Where(x => x.types.Contains("locality")).SingleOrDefault().long_name);
+                            }
+                            else
+                            {
+                                objAddressModel.City = string.Empty;
+                            }
+                            objAddressModel.Latitude = latitude;
+                            objAddressModel.Longitude = longitude;
+                        }
                     }
                 }
             }
@@ -267,7 +295,7 @@ namespace Sarthi.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public ServiceRequestModel GetDistanceByLatLong(ref ServiceRequestModel objServiceRequestModel)
         {
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xYZlTFwlSqUx9GodjvwBa3yXim4eu",
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xXEaFwNghC7buXPval97zxtUAXAqY",
               objServiceRequestModel.PickupLocation.Latitude,
               objServiceRequestModel.PickupLocation.Longitude,
               objServiceRequestModel.DropOffLocation.Latitude,
@@ -297,7 +325,7 @@ namespace Sarthi.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public VendorDistanceModel GetVendorDistanceByLatLong(RequestVendorModel objServiceRequestModel, double latitude, double longitude)
         {
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xYZlTFwlSqUx9GodjvwBa3yXim4eu",
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xXEaFwNghC7buXPval97zxtUAXAqY",
              latitude, longitude, objServiceRequestModel.PickupLocation.Latitude,
               objServiceRequestModel.PickupLocation.Longitude);
 
@@ -579,6 +607,64 @@ namespace Sarthi.API.Controllers
                 return Ok(model);
             }
              
+            return Ok(model);
+        }
+
+        [HttpPost("RejectServiceRequestByCustomer")]
+        public async Task<IActionResult> RejectServiceRequestByCustomer(RejectCustomerRequestViewModel objRejectCustomerModel)
+        {
+            var model = new Result<bool>();
+
+            try
+            {
+                if (objRejectCustomerModel.customerId > 0 || objRejectCustomerModel.requestId > 0)
+                {
+                    int status = _requestService.RejectServiceRequestByCustomer(objRejectCustomerModel.customerId,
+                        objRejectCustomerModel.requestId).Result;
+
+                    if (status == 0)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 2,
+                            Count = 0,
+                            Message = "Something wrong happened.",
+                            Data = false
+                        };
+                    }
+                    else if (status == 1)
+                    {
+                        model = new Result<bool>
+                        {
+                            Status = 1,
+                            Count = 0,
+                            Message = "Request has been cancelled successfully.",
+                            Data = true
+                        };
+                    }
+                }
+                else
+                {
+                    model = new Result<bool>
+                    {
+                        Status = 2,
+                        Count = 0,
+                        Message = "Invalid Request",
+                        Data = false
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new Result<bool>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = "Something wrong happened",
+                    Data = false
+                };
+                _logger.LogError(ex, "Transaction failed");
+            }
             return Ok(model);
         }
     }

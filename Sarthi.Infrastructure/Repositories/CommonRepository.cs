@@ -133,6 +133,17 @@ namespace Sarthi.Infrastructure.Repositories
             return lstTrackServiceModel;
         }
 
+        public async Task<PastTrackServiceModel> GetPastHistoyDeatilsCustomer(int userId)
+        {
+            PastTrackServiceModel objPastTrackServiceModel = new PastTrackServiceModel();
+
+            using (SqlConnection connection = new SqlConnection(this._configuration.GetConnectionString("DefaultConnection")))
+            {
+                var parameters = new { UserId = userId };
+                objPastTrackServiceModel = await connection.QuerySingleOrDefaultAsync<PastTrackServiceModel>("SP_PastHistoryDetails", parameters, commandType: CommandType.StoredProcedure);
+            }
+            return objPastTrackServiceModel;
+        }
 
     }
 }

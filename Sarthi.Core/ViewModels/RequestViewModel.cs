@@ -22,4 +22,10 @@ namespace Sarthi.Core.ViewModels
         public int customerId { get; set; }
         public int quoationDetailedId { get; set; }
     }
+
+    public class RejectCustomerRequestViewModel
+    {
+        public int customerId { get; set; }
+        public int requestId { get; set; }
+    }
 }

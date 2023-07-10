@@ -78,6 +78,8 @@ namespace Sarthi.Core.Models
         public int QuoationDetailId { get; set; }
         public string StageName { get; set; }
         public DateTime? PaymentDateTime { get; set; }
+        public DateTime? RequestDateTime { get; set; }
+        public DateTime? ActionDatetime { get; set; }
     }
 
     public class TrackServiceModel
@@ -89,5 +91,9 @@ namespace Sarthi.Core.Models
         public string timeString { get; set; } 
     }
 
-
+    public class PastTrackServiceModel
+    {
+        public int PastStageId { get; set; }
+        public string RequestNumber { get; set; } 
+    }
 }

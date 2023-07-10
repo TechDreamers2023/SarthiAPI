@@ -318,5 +318,61 @@ namespace Sarthi.API.Controllers
             return Ok(model);
         }
 
+        [HttpGet("GetPastHistoyDeatilsCustomer")]
+        public async Task<IActionResult> GetPastHistoyDeatilsCustomer(int userId)
+        {
+            var model = new Result<PastTrackServiceModel>();
+            PastTrackServiceModel objPastTrackServiceModel = new PastTrackServiceModel();
+
+            try
+            {
+                if (userId > 0)
+                {
+                    objPastTrackServiceModel = await _commonService.GetPastHistoyDeatilsCustomer(userId);
+                    if (objPastTrackServiceModel != null)
+                    {
+                        model = new Result<PastTrackServiceModel>
+                        {
+                            Status = 1,
+                            Count = 1,
+                            Message = "Track request successfully.",
+                            Data = objPastTrackServiceModel
+                        };
+                        return Ok(model);
+                    }
+                    model = new Result<PastTrackServiceModel>
+                    {
+                        Status = 2,
+                        Count = 0,
+                        Message = "No Records Found.",
+                        Data = null
+                    };
+                }
+                else
+                {
+                    model = new Result<PastTrackServiceModel>
+                    {
+                        Status = 2,
+                        Count = 0,
+                        Message = "Invalid Parameters",
+                        Data = null
+                    };
+                }
+
+            }
+            catch (Exception ex)
+            {
+                model = new Result<PastTrackServiceModel>
+                {
+                    Status = 0,
+                    Count = 0,
+                    Message = "Something went wrong.",
+                    Data = null
+                };
+                _logger.LogError(ex, "Transaction failed");
+            }
+            return Ok(model);
+        }
+
     }
 }

@@ -45,5 +45,9 @@ namespace Sarthi.Services
         {
             return await _unitOfWork.CommonRepository.GetTrackServiceRequest(userId);
         }
+        public async Task<PastTrackServiceModel> GetPastHistoyDeatilsCustomer(int userId)
+        {
+            return await _unitOfWork.CommonRepository.GetPastHistoyDeatilsCustomer(userId);
+        }
     }
 }

@@ -11,5 +11,6 @@ namespace Sarthi.Services.Interfaces
         Task<IEnumerable<CustomerRequestServiceModel>> GetActiveCustomerServiceRequest(int customerId);
         Task<bool> CheckActiveRequestByCustomer(int customerId);
         Task<CustomerRequestStatusModel> GetCurrentStatusByCustomer(int customerId);
+        Task<int> RejectServiceRequestByCustomer(int customerId, int requestId);
     }
 }
