@@ -17,12 +17,16 @@ namespace Sarthi.API.Controllers
         private readonly ILogger<CommonController> _logger;
         public readonly ICommonService _commonService;
         public readonly IRequestService _requestService;
+        private readonly IConfiguration _configuration;
 
-        public RequestController(ILogger<CommonController> logger, ICommonService commonService, IRequestService requestService)
+        public RequestController(ILogger<CommonController> logger, ICommonService commonService, IRequestService requestService,
+            IConfiguration configuration)
         {
             _logger = logger;
             _commonService = commonService;
             _requestService = requestService;
+            _configuration = configuration;
+
         }
 
         [HttpPost("GenerateServiceRequest")]
@@ -259,7 +263,7 @@ namespace Sarthi.API.Controllers
         {
             AddressModel objAddressModel = new AddressModel();
 
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/geocode/json?latlng={0},{1}&key=xXEaFwNghC7buXPval97zxtUAXAqY", latitude, longitude);
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/geocode/json?latlng={0},{1}&key={2}", latitude, longitude, this._configuration.GetConnectionString("MapKey"));
 
             WebRequest request = WebRequest.Create(requestUri);
 
@@ -295,11 +299,12 @@ namespace Sarthi.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public ServiceRequestModel GetDistanceByLatLong(ref ServiceRequestModel objServiceRequestModel)
         {
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xXEaFwNghC7buXPval97zxtUAXAqY",
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key={4}",
               objServiceRequestModel.PickupLocation.Latitude,
               objServiceRequestModel.PickupLocation.Longitude,
               objServiceRequestModel.DropOffLocation.Latitude,
-              objServiceRequestModel.DropOffLocation.Longitude);
+              objServiceRequestModel.DropOffLocation.Longitude,
+               this._configuration.GetConnectionString("MapKey"));
 
             WebRequest request = WebRequest.Create(requestUri);
 
@@ -325,9 +330,9 @@ namespace Sarthi.API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public VendorDistanceModel GetVendorDistanceByLatLong(RequestVendorModel objServiceRequestModel, double latitude, double longitude)
         {
-            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key=xXEaFwNghC7buXPval97zxtUAXAqY",
+            string requestUri = string.Format("https://api.distancematrix.ai/maps/api/distancematrix/json?origins={0},{1}&destinations={2},{3}&departure_time=now&key={4}",
              latitude, longitude, objServiceRequestModel.PickupLocation.Latitude,
-              objServiceRequestModel.PickupLocation.Longitude);
+              objServiceRequestModel.PickupLocation.Longitude, this._configuration.GetConnectionString("MapKey"));
 
             VendorDistanceModel objVendorDistanceModel = new VendorDistanceModel();
             WebRequest request = WebRequest.Create(requestUri);
